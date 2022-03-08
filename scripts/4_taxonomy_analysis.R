@@ -1,6 +1,6 @@
 library(magrittr)
-source("scripts/0_set_options.R")
-simpleCache::loadCaches(c("inat", "inat_raw", "lit_all_gan"))
+source("scripts/set_options.R")
+simpleCache::loadCaches(c("inat", "inat_csv", "lit_all_gan"))
 
 # Taxonomic coverage -----------------------------------------------------------
 

@@ -1,5 +1,5 @@
 library(magrittr)
-source("scripts/0_set_options.R")
+source("scripts/set_options.R")
 simpleCache::loadCaches(c("inat", "inat_gtax", "oopt"))
 
 # Show the distribution of observations by administrative unit -----------------

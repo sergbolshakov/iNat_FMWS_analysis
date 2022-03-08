@@ -1,5 +1,5 @@
 library(magrittr)
-source("scripts/0_set_options.R")
+source("scripts/set_options.R")
 
 # Import the iNaturalist data --------------------------------------------------
 
@@ -12,10 +12,10 @@ source("scripts/0_set_options.R")
 #   destfile = "data/observations-215002.csv.zip"
 #   )
 
-inat_raw <- readr::read_csv("data/observations-215002.csv.zip",
+inat_csv <- readr::read_csv("data/observations-215002.csv.zip",
                             guess_max = 16000) %>% 
   purrr::discard(~ all(is.na(.))) %>% 
-  simpleCache::simpleCache("inat_raw", .)
+  simpleCache::simpleCache("inat_csv", .)
 
 # Import the literature data ---------------------------------------------------
 

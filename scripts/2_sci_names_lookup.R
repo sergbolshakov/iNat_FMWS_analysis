@@ -1,6 +1,6 @@
 library(magrittr)
-source("scripts/0_set_options.R")
-simpleCache::loadCaches(c("inat_raw",
+source("scripts/set_options.R")
+simpleCache::loadCaches(c("inat_csv",
                           "lit_bin", "lit_gbif",
                           "redbooks_nws", "redlist_iucn"))
 
@@ -11,7 +11,7 @@ simpleCache::loadCaches(c("inat_raw",
 # name_backbone_checklist() is memoised rgbif::name_backbone_checklist()
 
 inat_gsn <- 
-  inat_raw %>% 
+  inat_csv %>% 
   dplyr::select(name = scientific_name,
                 kingdom = taxon_kingdom_name,
                 phylum = taxon_phylum_name,
@@ -72,7 +72,7 @@ inat_gan <-
 # Combine GBIF taxonomy with the original iNaturalist data
 
 inat_gtax <- 
-  inat_raw %>% 
+  inat_csv %>% 
   dplyr::left_join(inat_gan,
                    by = c("scientific_name" = "verbatim_name")
                    ) %>% 

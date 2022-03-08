@@ -1,5 +1,5 @@
 library(magrittr)
-source("scripts/0_set_options.R")
+source("scripts/set_options.R")
 simpleCache::simpleCache("inat_gtax")
 
 # Rename the fields to DarwinCore terms (where possible),
