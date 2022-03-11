@@ -1,6 +1,10 @@
 library(magrittr)
-source("scripts/set_options.R")
-simpleCache::loadCaches(c("inat", "redbooks_nws_gtax", "redlist_iucn_gtax"))
+
+# Load data from cache --------------------------------------------------------- 
+
+simpleCache::loadCaches(c("inat",
+                          "redbooks_nws_gtax", "redlist_iucn_gtax"),
+                        cacheDir = "cache")
 
 # Select observations of red-listed species ------------------------------------
 

@@ -1,6 +1,10 @@
 library(magrittr)
-source("scripts/set_options.R")
-simpleCache::simpleCache("inat_gtax")
+
+# Load data from cache --------------------------------------------------------- 
+
+simpleCache::simpleCache("inat_gtax", cacheDir = "cache")
+
+# Prepare iNaturalist data -----------------------------------------------------
 
 # Rename the fields to DarwinCore terms (where possible),
 # replace the logins of naturalists with their real names
@@ -83,4 +87,4 @@ inat <-
                                  )
       )
     ) %>% 
-  simpleCache::simpleCache("inat", .)
+  simpleCache::simpleCache("inat", ., cacheDir = "cache")

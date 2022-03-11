@@ -1,16 +1,22 @@
 library(magrittr)
-source("scripts/set_options.R")
+
+# Set cache directory for simpleCache calls ------------------------------------
+
+simpleCache::setCacheDir("cache")
+
+# Memoise functions for queries to API Google Sheets, GBIF, and iNaturalist ----
+
+occ_data <- memoise::memoise(rgbif::occ_data,
+                             cache = memoise::cache_filesystem("cache/"))
+
+read_sheet <- memoise::memoise(googlesheets4::read_sheet,
+                               cache = memoise::cache_filesystem("cache/"))
 
 # Import the iNaturalist data --------------------------------------------------
 
 # Data exported on 2022-02-24 from iNaturalist website by query 
 # "quality_grade=any&identifications=any&projects[]=fungi-and-myxomycetes-in-northern-west-siberia"
 # (choosed all columns)
-
-# download.file(
-#   "https://www.inaturalist.org/attachments/flow_task_outputs/3188507/observations-215002.csv.zip?1645692376",
-#   destfile = "data/observations-215002.csv.zip"
-#   )
 
 inat_csv <- readr::read_csv("data/observations-215002.csv.zip",
                             guess_max = 16000) %>% 
@@ -46,13 +52,11 @@ lit_gbif <- dplyr::bind_rows(lit_gbif_1$data,
 # The database is under active development and has not yet been published,
 # so subset for only studied regions made in advance specifically for this project
 
-load("data/bin_lit_db_nws_subset.Rdata")
+load("data/bin_lit_db_nws_subset.RData")
 
-simpleCache::storeCache("lit_bin")
+simpleCache::storeCache("lit_bin", cacheDir = "cache")
 
-# Import geospatial data for geographic coverage analysis ----------------------
-
-# Используем геоданные с границами ООПТ федерального и регионального значения.
+# Import geospatial data of the protected areas boundaries ---------------------
 
 oopt <- 
   dplyr::bind_rows(

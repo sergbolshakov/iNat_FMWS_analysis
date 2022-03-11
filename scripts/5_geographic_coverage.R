@@ -1,6 +1,9 @@
 library(magrittr)
-source("scripts/set_options.R")
-simpleCache::loadCaches(c("inat", "inat_gtax", "oopt"))
+
+# Load data from cache --------------------------------------------------------- 
+
+simpleCache::loadCaches(c("inat", "inat_gtax", "oopt"),
+                        cacheDir = "cache")
 
 # Show the distribution of observations by administrative unit -----------------
 
@@ -79,4 +82,3 @@ dplyr::full_join(
                                species = "Number of species") %>% 
   flextable::set_table_properties(layout = "autofit") %T>% 
   flextable::save_as_docx(path = "output/protected_areas.docx")
-

@@ -1,8 +1,24 @@
 library(magrittr)
-source("scripts/set_options.R")
+
+# Set cache directory for simpleCache calls ------------------------------------
+
+simpleCache::setCacheDir("cache")
+
+# Load data from cache --------------------------------------------------------- 
+
 simpleCache::loadCaches(c("inat_csv",
                           "lit_bin", "lit_gbif",
                           "redbooks_nws", "redlist_iucn"))
+
+# Memoise functions for queries to GBIF Species API ----------------------------
+
+name_backbone_checklist <- 
+  memoise::memoise(rgbif::name_backbone_checklist,
+                   cache = memoise::cache_filesystem("cache"))
+
+name_usage <- 
+  memoise::memoise(rgbif::name_usage,
+                   cache = memoise::cache_filesystem("cache/gbif_name_usage"))
 
 # Get GBIF taxonomy for iNaturalist data ---------------------------------------
 
