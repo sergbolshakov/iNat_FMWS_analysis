@@ -20,5 +20,6 @@ The order in which the scripts are executed:
 4. [Taxonomic coverage](scripts/4_taxonomy_analysis.R) and the finds of species new to the study regions.
 5. [Geospatial distribution analysis](scripts/5_geographic_coverage.R) of observations by administrative regions and protected areas.
 6. [Time series analysis](scripts/6_temporal_coverage.R).
-7. [Analysis of the observers activity](scripts/7_observer_activity.R).
-8. [Selection of observations of the protected species](scripts/8_protected_species.R) included in the IUCN Red List, the Red Book of the Russian Federation, and Red Books of the study regions.
+7. [Analysis of the observers' activity](scripts/7_observer_activity.R).
+8. [Analysis of the identifiers' activity](8_identifiers_activity.R).
+9. [Selection of observations of the protected species](scripts/9_protected_species.R) included in the IUCN Red List, the Red Book of the Russian Federation, and Red Books of the study regions.

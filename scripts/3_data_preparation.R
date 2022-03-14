@@ -3,8 +3,11 @@ library(magrittr)
 # Load data from cache --------------------------------------------------------- 
 
 simpleCache::simpleCache("inat_gtax", cacheDir = "cache")
+simpleCache::loadCaches("inat_raw", cacheDir = "temp")
 
-# Prepare iNaturalist data -----------------------------------------------------
+# Prepare the iNaturalist data for further analyses ----------------------------
+
+# Data imported from csv and combined with GBIF taxonomy
 
 # Rename the fields to DarwinCore terms (where possible),
 # replace the logins of naturalists with their real names
@@ -88,3 +91,56 @@ inat <-
       )
     ) %>% 
   simpleCache::simpleCache("inat", ., cacheDir = "cache")
+
+# Data obtained via API
+
+# Unnest the nested list of verbose data,
+# and selectively pull out the necessary components of a list-columns
+
+inat_api <- 
+  inat_raw %>% 
+  tibble::tibble(json = .) %>% 
+  tidyr::unnest_wider(json) %>% 
+  tidyr::hoist(taxon, scientific_name = "name") %>% 
+  tidyr::hoist(identifications, current_id = "current") %>% 
+  tidyr::hoist(identifications, identifier = c("user", "login")) %>% 
+  dplyr::select(id,
+                quality_grade,
+                scientific_name,
+                identifications_count,
+                current_id,
+                identifier) %>% 
+  tidyr::unnest_longer(col = c(current_id, identifier)) %>% 
+  dplyr::mutate(dplyr::across(
+    identifier,
+    ~ stringr::str_replace_all(.,
+                               c("ninacourlee" = "Nina Filippova",
+                                 "viktoriabilous" = "Viktoria Bilous",
+                                 "tls-60" = "Tatiana Strus",
+                                 "marasmius" = "Elena Zvyagina",
+                                 "lioncbc" = "Vyacheslav Vlasenko",
+                                 "elenabutunina" = "Elena Butunina",
+                                 "aleks86" = "Alexandra Mingalimova",
+                                 "epopov" = "Eugene Popov",
+                                 "nikolai_nakonechnyi" = "Nikolai Nakonechnyi",
+                                 "eadavydov" = "Eugene Davydov",
+                                 "convallaria1128" = "Dmitrii Bochkov",
+                                 "kim_potapov" = "Kim Potapov",
+                                 "asfav" = "Alexandra Filippova",
+                                 "igor_kuzmin" = "Igor Kuzmin",
+                                 "ivankaramelkin" = "Dmitry Ageev",
+                                 "tsvetasheva" = "Tatiana Svetasheva",
+                                 "yury_rebriev" = "Yurii Rebriev",
+                                 "svg52" = "Sergei Gerasimov",
+                                 "urmansky" = "Alexander Korepanov",
+                                 "sbolshakov" = "Sergei Bolshakov",
+                                 "juhakinnunen" = "Juha Kinnunen",
+                                 "natalyakorotkikh" = "Natalia Korotkikh",
+                                 "milakalinina" = "Liudmila Kalinina",
+                                 "kastani" = "Ruslan Nurhanov",
+                                 "tmaximo" = "Massimo Tabone",
+                                 "anastasiavlasenko" = "Anastasia Vlasenko",
+                                 "johnplischke" = "John Plischke")
+                               )
+    )) %>% 
+  simpleCache::simpleCache("inat_api", ., cacheDir = "cache")

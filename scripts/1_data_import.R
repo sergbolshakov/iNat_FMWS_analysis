@@ -4,13 +4,26 @@ library(magrittr)
 
 simpleCache::setCacheDir("cache")
 
-# Memoise functions for queries to API Google Sheets, GBIF, and iNaturalist ----
+# Memoise functions for queries to iNaturalist, GBIF, and Google Sheets API ----
+
+get_inat_obs_id <- memoise::memoise(rinat::get_inat_obs_id,
+                                    cache = memoise::cache_filesystem("temp/inat_obs"))
 
 occ_data <- memoise::memoise(rgbif::occ_data,
                              cache = memoise::cache_filesystem("cache/"))
 
 read_sheet <- memoise::memoise(googlesheets4::read_sheet,
                                cache = memoise::cache_filesystem("cache/"))
+
+# Set up progress bar to monitor status of queries to iNaturalist API ----------
+
+progressr::handlers(
+  progressr::handler_progress(
+    format = ":spin :current/:total (:message) [:bar] :percent in :elapsed ETA: :eta",
+    width = 80,
+    complete = "+"
+  )
+)
 
 # Import the iNaturalist data --------------------------------------------------
 
@@ -22,6 +35,34 @@ inat_csv <- readr::read_csv("data/observations-215002.csv.zip",
                             guess_max = 16000) %>% 
   purrr::discard(~ all(is.na(.))) %>% 
   simpleCache::simpleCache("inat_csv", .)
+
+# Request full вфеф on project observations via the iNaturalist API
+# for information on identifications
+
+# Be careful! This request will take a long time (more than 6 hours).
+# The resulting file will be large (1.6 GB)
+
+# get_inat_obs_id() is memoised rinat::get_inat_obs_id()
+
+inat_ids <- inat_csv$id
+
+inat_raw <- vector(mode = "list",
+                   length = length(inat_ids))
+
+progressr::with_progress({
+  p <- progressr::progressor(steps = length(inat_ids))
+  for(i in seq_along(inat_ids)) {
+    p()
+    Sys.sleep(.2)
+    inat_raw[[i]] <- get_inat_obs_id(id = inat_ids[i])
+    if(inat_ids[i] %in% inat_ids[seq_along(inat_ids) %% 60 == 0]) {
+      cat(".")
+      Sys.sleep(30)
+    }
+  }
+})
+
+simpleCache::storeCache("inat_raw", cacheDir = "temp")
 
 # Import the literature data ---------------------------------------------------
 
