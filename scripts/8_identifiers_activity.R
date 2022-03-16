@@ -2,32 +2,32 @@ library(magrittr)
 
 # Load data from cache --------------------------------------------------------- 
 
-simpleCache::loadCaches(c("inat_api", "inat"), cacheDir = "cache")
+simpleCache::loadCaches(c("inat_idents", "inat"), cacheDir = "cache")
 
 # iNaturalist Data Quality Assessment ------------------------------------------
 # https://www.inaturalist.org/pages/help#quality
 
-inat_api %>% 
+inat_idents %>% 
   dplyr::group_by(quality_grade) %>% 
   dplyr::summarize(
     observations = dplyr::n_distinct(id),
-    percentage = round(observations / dplyr::n_distinct(inat_api$id) * 100,
+    percentage = round(observations / dplyr::n_distinct(inat_idents$id) * 100,
                        digits = 2))
 
 # Total identifiers ------------------------------------------------------------
 
-dplyr::n_distinct(inat_api$identifier)
+dplyr::n_distinct(inat_idents$identifier)
 
 # Summarize identifications by identifiers -------------------------------------
 
 inat_identifiers <- 
-  inat_api %>% 
+  inat_idents %>% 
   dplyr::group_by(identifier) %>% 
   dplyr::summarise(
     id_all = dplyr::n(),
-    id_cur = dplyr::n_distinct(id[current_id == "TRUE"]),
-    id_prc = round((id_cur / length(inat_api$id) * 100), digits = 2),
-    id_rg = dplyr::n_distinct(id[current_id == "TRUE" & quality_grade == "research"]),
+    id_cur = dplyr::n_distinct(id[current == "TRUE"]),
+    id_prc = round((id_cur / length(inat_idents$id) * 100), digits = 2),
+    id_imp = dplyr::n_distinct(id[category == "improving"]),
     ) %>%
   dplyr::ungroup() %>% 
   dplyr::bind_rows(
@@ -35,7 +35,7 @@ inat_identifiers <-
       dplyr::summarize(id_all = sum(id_all),
                        id_cur = sum(id_cur),
                        id_prc = sum(id_prc),
-                       id_rg = sum(id_rg)) %>%
+                       id_imp = sum(id_imp)) %>%
       dplyr::mutate(identifier = "Others")
   ) %>%
   dplyr::filter(id_prc > 1.00)
@@ -69,7 +69,7 @@ ggplot2::ggsave("output/identifiers_effort.jpg",
 
 # Show distributions of the identifications counts -----------------------------
 
-inat_api %>% 
+inat_idents %>% 
   dplyr::group_by(identifications_count) %>% 
   dplyr::summarise(observations = dplyr::n_distinct(id)) %>% 
   ggplot2::ggplot(ggplot2::aes(x = observations,

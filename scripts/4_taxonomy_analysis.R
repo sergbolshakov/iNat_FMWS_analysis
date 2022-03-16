@@ -50,7 +50,8 @@ inat_taxonomy <-
   inat %>% 
   # dplyr::filter(qualityGrade == "research") %>% 
   dplyr::group_by(acceptedNameUsage) %>% 
-  dplyr::mutate(n_obs = dplyr::n()) %>% 
+  dplyr::mutate(n_obs = dplyr::n(),
+                n_spe = dplyr::n_distinct(species, na.rm = TRUE)) %>%
   metacoder::parse_tax_data(class_cols = 20:26,
                             named_by_rank = TRUE)
 
@@ -58,66 +59,48 @@ set.seed(1)
 
 plot_mycetozoa <- 
   inat_taxonomy %>% 
-  metacoder::filter_taxa(taxon_names == "Mycetozoa", subtaxa = TRUE) %>% 
-  #metacoder::filter_taxa(taxon_ranks == "genus", supertaxa = TRUE) %>%
+  metacoder::filter_taxa(taxon_names == "Mycetozoa",
+                         subtaxa = TRUE) %>% 
+  metacoder::filter_taxa(taxon_ranks == "family", supertaxa = TRUE) %>%
   metacoder::heat_tree(initial_layout = "reingold-tilford",
                        layout = "davidson-harel",
                        node_label = taxon_names,
                        node_size = n_obs,
-                       #node_size_range = c(0.01, 0.05),
-                       node_size_axis_label = "Number of observations",
-                       node_color = n_leaves,
-                       node_color_axis_label = "Number of species")
+                       node_size_range = c(0.01, 0.05),
+                       node_color = n_obs,
+                       node_color_axis_label = "Number of \n observations")
 
 plot_asco <- 
   inat_taxonomy %>% 
   metacoder::filter_taxa(taxon_names == "Ascomycota", subtaxa = TRUE) %>% 
-  #metacoder::filter_taxa(taxon_ranks == "genus", supertaxa = TRUE) %>%
+  metacoder::filter_taxa(taxon_ranks == "family", supertaxa = TRUE) %>%
   metacoder::heat_tree(initial_layout = "reingold-tilford",
                        layout = "davidson-harel",
                        node_label = taxon_names,
                        node_size = n_obs,
-                       #node_size_range = c(0.01, 0.05),
-                       node_size_axis_label = "Number of observations",
-                       node_color = n_leaves,
-                       node_color_axis_label = "Number of species")
+                       node_size_range = c(0.01, 0.05),
+                       node_color = n_obs,
+                       node_color_axis_label = "Number of \n observations")
 
-plot_basidio_agaricomycetes <-
+plot_basidio <-
   inat_taxonomy %>% 
-  metacoder::filter_taxa(taxon_names == "Agaricomycetes", subtaxa = TRUE) %>% 
-  #metacoder::filter_taxa(taxon_ranks == "genus", supertaxa = TRUE) %>%
+  metacoder::filter_taxa(taxon_names == "Basidiomycota", subtaxa = TRUE) %>% 
+  metacoder::filter_taxa(taxon_ranks == "family", supertaxa = TRUE) %>%
   metacoder::heat_tree(initial_layout = "reingold-tilford",
                        layout = "davidson-harel",
                        node_label = taxon_names,
                        node_size = n_obs,
-                       #node_size_range = c(0.01, 0.05),
-                       node_size_axis_label = "Number of observations",
-                       node_color = n_leaves,
-                       node_color_axis_label = "Number of species")
+                       node_size_range = c(0.01, 0.05),
+                       node_color = n_obs,
+                       node_color_axis_label = "Number of \n observations")
 
-plot_basidio_others <-
-  inat_taxonomy %>% 
-  metacoder::filter_taxa(taxon_names %in% c("Mycetozoa",
-                                            "Ascomycota",
-                                            "Agaricomycetes"),
-                         subtaxa = TRUE,
-                         invert = TRUE) %>% 
-  #metacoder::filter_taxa(taxon_ranks == "genus", supertaxa = TRUE) %>%
-  metacoder::heat_tree(initial_layout = "reingold-tilford",
-                       layout = "davidson-harel",
-                       node_label = taxon_names,
-                       node_size = n_obs,
-                       #node_size_range = c(0.01, 0.05),
-                       node_size_axis_label = "Number of obs",
-                       node_color = n_leaves,
-                       node_color_axis_label = "Number of species")
+cowplot::plot_grid(plot_asco,
+                   plot_basidio,
+                   ncol = 2, nrow = 1)
 
-combined_plot <- cowplot::plot_grid(
-  plot_basidio_agaricomycetes,
-  cowplot::plot_grid(plot_asco,
-                     cowplot::plot_grid(plot_basidio_others, plot_mycetozoa),
-                     ncol = 1, nrow = 2),
-  ncol = 2, nrow = 1)
+ggplot2::ggsave("output/taxonomic_coverage.jpg",
+                dpi = 1200,
+                bg = "white")
 
 # iNaturalist taxonomy
 
