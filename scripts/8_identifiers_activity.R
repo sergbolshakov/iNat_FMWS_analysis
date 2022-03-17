@@ -92,16 +92,30 @@ ggplot2::ggsave("output/identifications_counts.jpg",
 
 # Show genera identifiability --------------------------------------------------
 
-inat %>% 
+inat_idfbl <- 
+  inat %>% 
   dplyr::group_by(genus) %>% 
-  dplyr::summarize(obs_all = dplyr::n_distinct(occurrenceID),
-                   obs_rg = dplyr::n_distinct(occurrenceID[qualityGrade == "research"])) %>% 
+  dplyr::summarize(
+    obs_all = dplyr::n_distinct(occurrenceID),
+    obs_rg = dplyr::n_distinct(occurrenceID[qualityGrade == "research" & !is.na(species)]),
+    id_per = round((obs_rg / obs_all), digits = 2)) %>% 
   dplyr::filter(!is.na(genus),
-                obs_all > 100) %>% 
-  tidyr::pivot_longer(cols = c(obs_all, obs_rg),
-                      names_to = "variables",
-                      values_to = "values") %>% 
-  ggplot2::ggplot(ggplot2::aes(x = values, y = genus,
-                               fill = variables)) +
-  ggplot2::geom_bar(position = ggplot2::position_fill(), stat = "identity") +
-  ggplot2::scale_x_continuous(labels = scales::percent_format())
+                obs_all > 100)
+
+ggplot2::ggplot(inat_idfbl,
+                ggplot2::aes(x = id_per, y = genus)) +
+  ggplot2::geom_segment(ggplot2::aes(x = 0, xend = id_per,
+                                     y = genus, yend = genus),
+                        colour = "darkblue") +
+  ggplot2::geom_point(size = 3, colour = "darkblue") +
+  ggplot2::scale_y_discrete(limits = c(
+    inat_idfbl %>% dplyr::arrange(desc(id_per)) %>% dplyr::pull(genus))
+    ) +
+  ggplot2::scale_x_continuous(labels = scales::label_percent()) +
+  ggplot2::labs(x = "Percentage of Research Grade observations identified to species",
+                y = "") +
+  ggplot2::theme_minimal()
+
+ggplot2::ggsave("output/identifiability_genera.jpg",
+                dpi = 1200,
+                bg = "white")
