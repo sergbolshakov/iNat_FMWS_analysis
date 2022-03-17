@@ -160,7 +160,7 @@ inat <-
     license,
     associatedReferences = url,
     associatedMedia = image_url,
-    occurenceRemarks = description,
+    occurrenceRemarks = description,
     decimalLatitude = latitude,
     decimalLongitude = longitude,
     coordinateUncertaintyInMeters = positional_accuracy,

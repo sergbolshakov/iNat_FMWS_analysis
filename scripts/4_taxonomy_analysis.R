@@ -104,7 +104,7 @@ ggplot2::ggsave("output/taxonomic_coverage.jpg",
 
 # iNaturalist taxonomy
 
-inat_raw %>% 
+inat_csv %>% 
   # dplyr::filter(quality_grade == "research") %>% 
   dplyr::group_by(taxon_kingdom_name, taxon_phylum_name, taxon_class_name) %>% 
   dplyr::summarise(orders = dplyr::n_distinct(taxon_order_name, na.rm = TRUE),
@@ -156,7 +156,8 @@ inat_new_species <-
   dplyr::filter(qualityGrade == "research",
                 species %in% inat_new) %>% 
   dplyr::group_by(acceptedNameUsage, stateProvince) %>% 
-  dplyr::select(acceptedNameUsage,
+  dplyr::select(occurrenceID,
+                acceptedNameUsage,
                 stateProvince,
                 decimalLatitude,
                 decimalLongitude,
@@ -165,14 +166,16 @@ inat_new_species <-
                 associatedReferences,
                 ) %>%
   dplyr::distinct() %>% 
-  dplyr::arrange(acceptedNameUsage)
+  dplyr::arrange(acceptedNameUsage) %>% 
+  dplyr::ungroup() %>% 
+  simpleCache::simpleCache("inat_new_species", ., cacheDir = "cache")
 
 # Print statistics
 
 inat_new_species %>% 
   dplyr::group_by(stateProvince) %>% 
   dplyr::summarize(species = dplyr::n_distinct(acceptedNameUsage),
-                   observations = dplyr::n()) %>% 
+                   observations = dplyr::n_distinct(occurrenceID)) %>% 
   flextable::flextable() %>% 
   flextable::autofit()
 
