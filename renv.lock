@@ -127,10 +127,10 @@
     },
     "Rcpp": {
       "Package": "Rcpp",
-      "Version": "1.0.8.2",
+      "Version": "1.0.8.3",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "6d93fbe4e93e43cbf59fd90d7932c5fb",
+      "Hash": "32e79b908fda56ee57fe518a8d37b864",
       "Requirements": []
     },
     "RcppArmadillo": {
@@ -1517,16 +1517,10 @@
     },
     "rgbif": {
       "Package": "rgbif",
-      "Version": "3.7.0.02",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "rgbif",
-      "RemoteUsername": "ropensci",
-      "RemotePkgRef": "ropensci/rgbif",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "3c976dec5f1e0bc98fa4e2549b8d2c81aa66800d",
-      "Hash": "2dcee9bddcae413a3e08021bfd395ade",
+      "Version": "3.7.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "8564f256354b72cfad187816ed52b8fd",
       "Requirements": [
         "R6",
         "conditionz",
@@ -2024,10 +2018,10 @@
     },
     "uuid": {
       "Package": "uuid",
-      "Version": "1.0-3",
+      "Version": "1.0-4",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "2097822ba5e4440b81a0c7525d0315ce",
+      "Hash": "99c959c7424be995ddca19b5736c8dd0",
       "Requirements": []
     },
     "vctrs": {
