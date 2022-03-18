@@ -45,9 +45,12 @@ ggplot2::ggplot(inat_observers,
       dplyr::pull(recordedBy)
   )) +
   ggplot2::labs(x = "Number of observations", y = "") +
-  ggplot2::geom_text(ggplot2::aes(label = paste0(percentage, "%"), hjust = -0.2)) +
+  ggplot2::geom_text(ggplot2::aes(label = paste0(percentage, "%"), hjust = -0.2),
+                     family = "Times New Roman") +
   ggplot2::xlim(0, 4900) +
-  ggplot2::theme_minimal()
+  ggplot2::theme_minimal() +
+  ggplot2::theme(text = ggplot2::element_text(family = "Times New Roman",
+                                              face = "bold", size = 12))
 
 ggplot2::ggsave("output/observers_effort.jpg",
                 dpi = 1200,
@@ -73,7 +76,9 @@ inat %>%
   ggplot2::theme(legend.position = "bottom",
                  legend.title = ggplot2::element_blank()) +
   ggplot2::scale_colour_manual(values = c("darkblue", "red")) +
-  ggplot2::scale_fill_manual(values = c("lightblue", "white"))
+  ggplot2::scale_fill_manual(values = c("lightblue", "white")) +
+  ggplot2::theme(text = ggplot2::element_text(family = "Times New Roman",
+                                              face = "bold", size = 12))
 
 ggplot2::ggsave("output/observers_histogram.jpg",
                 dpi = 1200,

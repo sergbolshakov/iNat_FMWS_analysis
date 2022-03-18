@@ -58,10 +58,13 @@ ggplot2::ggplot(inat_identifiers,
                  dplyr::arrange(id_cur) %>%
                  dplyr::pull(identifier)
                )) +
-  ggplot2::geom_text(ggplot2::aes(label = paste0(id_prc, "%"), hjust = -0.2)) +
+  ggplot2::geom_text(ggplot2::aes(label = paste0(id_prc, "%"), hjust = -0.2),
+                     family = "Times New Roman") +
   ggplot2::scale_x_continuous(name = "Number of identifications",
                               n.breaks = 10, limits = c(0, 14000)) +
-  ggplot2::theme_minimal()
+  ggplot2::theme_minimal() +
+  ggplot2::theme(text = ggplot2::element_text(family = "Times New Roman",
+                                              face = "bold", size = 12))
 
 ggplot2::ggsave("output/identifiers_effort.jpg",
                 dpi = 1200,
@@ -83,8 +86,11 @@ inat_idents %>%
   ggplot2::scale_x_continuous(name = "Number of observations",
                               trans = "log10",
                               limits = c(1, 15000)) +
-  ggplot2::geom_text(ggplot2::aes(label = observations, hjust = -0.5)) +
-  ggplot2::theme_minimal()
+  ggplot2::geom_text(ggplot2::aes(label = observations, hjust = -0.5),
+                     family = "Times New Roman") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(text = ggplot2::element_text(family = "Times New Roman",
+                                              face = "bold", size = 12))
 
 ggplot2::ggsave("output/identifications_counts.jpg",
                 dpi = 1200,
@@ -114,7 +120,9 @@ ggplot2::ggplot(inat_idfbl,
   ggplot2::scale_x_continuous(labels = scales::label_percent()) +
   ggplot2::labs(x = "Percentage of Research Grade observations identified to species",
                 y = "") +
-  ggplot2::theme_minimal()
+  ggplot2::theme_minimal() +
+  ggplot2::theme(text = ggplot2::element_text(family = "Times New Roman",
+                                              face = "bold", size = 12))
 
 ggplot2::ggsave("output/identifiability_genera.jpg",
                 dpi = 1200,

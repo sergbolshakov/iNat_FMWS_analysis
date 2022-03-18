@@ -51,8 +51,8 @@ inat_month %>%
   ggplot2::labs(x = "", y = "Number of observations") +
   ggplot2::ylim(0, 2300) +
   tsibble::scale_x_yearmonth(
-    limits = c(lubridate::ym("2017 Dec"), lubridate::ym("2022 Jan")),
-    breaks = "4 months") +
+    limits = c(lubridate::ym("2017 Dec"), lubridate::ym("2021 Dec")),
+    breaks = "6 months") +
   ggplot2::theme_minimal() +
   ggplot2::theme(legend.position = "bottom",
                  legend.title = ggplot2::element_blank()) +
@@ -64,9 +64,12 @@ inat_month %>%
       dplyr::filter(qualityGrade == "observations_all") %>% 
       tsibble::filter_index("2018 Aug", "2019 Aug", "2020 Apr",
                             "2020 Sep", "2021 May", "2021 Sep"),
-    ggplot2::aes(label = paste(observations)),
+    ggplot2::aes(label = paste(observations),
+                 family = "Times New Roman"),
     check_overlap = TRUE, vjust = -0.7,
-    show.legend = FALSE)
+    show.legend = FALSE) +
+  ggplot2::theme(text = ggplot2::element_text(family = "Times New Roman",
+                                              face = "bold", size = 12))
 
 ggplot2::ggsave("output/time_series.jpg",
                 dpi = 1200,
@@ -77,7 +80,8 @@ ggplot2::ggsave("output/time_series.jpg",
 inat %>% 
   dplyr::filter(class == "Agaricomycetes",
                 !is.na(eventDate),
-                eventDate > "2018-01-01" & eventDate < "2021-12-31") %>% 
+                eventDate > "2018-01-01" & eventDate < "2021-11-01"
+                ) %>% 
   tsibble::as_tsibble(index = eventDate,
                       key = occurrenceID) %>% 
   tsibble::index_by(month = tsibble::yearmonth(eventDate)) %>% 
@@ -88,7 +92,9 @@ inat %>%
   ggplot2::geom_point() +
   ggplot2::labs(x = "", y = "Number of observations") +
   ggplot2::theme_minimal() +
-  ggplot2::theme(axis.text.x.bottom = ggplot2::element_text(angle = 90))
+  ggplot2::theme(axis.text.x.bottom = ggplot2::element_text(angle = 90)) +
+  ggplot2::theme(text = ggplot2::element_text(family = "Times New Roman",
+                                              face = "bold", size = 12))
 
 ggplot2::ggsave("output/seasonal_subseries.jpg",
                 dpi = 1200,
