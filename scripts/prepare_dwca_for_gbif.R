@@ -39,7 +39,7 @@ inat_new_species %>%
                 geodeticDatum,
                 coordinateUncertaintyInMeters,
                 scientificName:identificationRemarks) %>% 
-  readr::write_tsv("output/dwca_occurrence.tsv",
+  readr::write_csv("output/dwca_occurrence.csv",
                    na = "",
-                   quote = "none",
-                   escape = "none")
+                   quote = "needed",
+                   escape = "double")
