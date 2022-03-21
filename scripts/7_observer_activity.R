@@ -30,7 +30,6 @@ inat_observers <-
 
 ggplot2::ggplot(inat_observers,
                 ggplot2::aes(x = observations, y = recordedBy)) +
-  # ggplot2::geom_col(color = "darkblue", fill = "lightblue") +
   ggplot2::geom_point(size = 3, color = "darkblue") +
   ggplot2::geom_segment(ggplot2::aes(x = 0, xend = observations,
                                      y = recordedBy, yend = recordedBy),

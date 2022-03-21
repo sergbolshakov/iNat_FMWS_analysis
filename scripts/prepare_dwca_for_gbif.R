@@ -39,6 +39,7 @@ inat_new_species %>%
                 geodeticDatum,
                 coordinateUncertaintyInMeters,
                 scientificName:identificationRemarks) %>% 
+  dplyr::filter(!is.na(license)) %>% 
   readr::write_csv("output/dwca_occurrence.csv",
                    na = "",
                    quote = "needed",
