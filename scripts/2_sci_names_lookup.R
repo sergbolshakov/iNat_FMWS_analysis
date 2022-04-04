@@ -10,15 +10,58 @@ simpleCache::loadCaches(c("inat_csv",
                           "lit_bin", "lit_gbif",
                           "redbooks_nws", "redlist_iucn"))
 
-# Memoise functions for queries to GBIF Species API ----------------------------
+# Memoise function for queries to GBIF Species API -----------------------------
 
 name_backbone_checklist <- 
   memoise::memoise(rgbif::name_backbone_checklist,
                    cache = memoise::cache_filesystem("cache"))
 
-name_usage <- 
-  memoise::memoise(rgbif::name_usage,
-                   cache = memoise::cache_filesystem("cache/gbif_name_usage"))
+# Write function to get accepted names 
+# for all names (including synonyms) obtained with name_backbone_checklist()
+
+get_gbif_accepted_names <- 
+  function(gsn) {
+    
+    # Memoise function for queries to GBIF Species API
+    name_usage <- 
+      memoise::memoise(rgbif::name_usage,
+                       cache = memoise::cache_filesystem("cache/gbif_name_usage"))
+    
+    # Obtain accepted names for synonyms
+    gsn_syn <- 
+      gsn %>% 
+      dplyr::select(acceptedUsageKey) %>% 
+      dplyr::distinct() %>% 
+      na.omit() %>%  
+      purrr::as_vector() %>% 
+      purrr::map(., name_usage) %>%
+      purrr::map(~.[[2]]) %>%
+      dplyr::bind_rows()
+    
+    # Link all scientific names to accepted names
+    gan <- 
+      dplyr::bind_rows(
+        # Add accepted names of synonyms to source table
+        gsn %>% 
+          dplyr::inner_join(gsn_syn %>% 
+                              dplyr::select(key,
+                                            acceptedNameUsage = scientificName),
+                            by = c("acceptedUsageKey" = "key")
+          ),
+        gsn %>% 
+          dplyr::filter(is.na(acceptedUsageKey)) %>%
+          dplyr::mutate(acceptedNameUsage = scientificName)
+      ) %>% 
+      dplyr::arrange(scientificName) %>% 
+      dplyr::select(scientificName, 
+                    taxonRank = rank,
+                    taxonomicStatus = status,
+                    acceptedNameUsage,
+                    kingdom, phylum, class, order, family, genus, species,
+                    verbatim_name, confidence, matchType)
+    
+    return(gan)
+  }
 
 # Get GBIF taxonomy for iNaturalist data ---------------------------------------
 
@@ -49,49 +92,16 @@ inat_gsn %>%
   flextable::flextable() %>% 
   flextable::autofit()
 
-# Obtain accepted names for synonyms
+# Obtain accepted names for all names
 
-# name_usage() is memoised rgbif::name_usage()
-
-inat_gsn_syn <- 
-  inat_gsn %>% 
-  dplyr::select(acceptedUsageKey) %>% 
-  dplyr::distinct() %>% 
-  na.omit() %>%  
-  purrr::as_vector() %>% 
-  purrr::map(., name_usage) %>%
-  purrr::map(~.[[2]]) %>%
-  dplyr::bind_rows()
-
-# Link scientific names to accepted names
-
-inat_gan <- 
-  dplyr::bind_rows(
-    inat_gsn %>% 
-      dplyr::inner_join(inat_gsn_syn %>% 
-                          dplyr::select(key,
-                                        acceptedNameUsage = scientificName),
-                        by = c("acceptedUsageKey" = "key")
-                        ),
-    inat_gsn %>% 
-      dplyr::filter(is.na(acceptedUsageKey)) %>%
-      dplyr::mutate(acceptedNameUsage = scientificName)
-    ) %>% 
-  dplyr::arrange(scientificName) %>% 
-  dplyr::select(scientificName,
-                taxonRank = rank,
-                taxonomicStatus = status,
-                acceptedNameUsage,
-                kingdom, phylum, class, order, family, genus, species,
-                verbatim_name, confidence, matchType)
+inat_gan <- get_gbif_accepted_names(inat_gsn)
 
 # Combine GBIF taxonomy with the original iNaturalist data
 
 inat_gtax <- 
   inat_csv %>% 
   dplyr::left_join(inat_gan,
-                   by = c("scientific_name" = "verbatim_name")
-                   ) %>% 
+                   by = c("scientific_name" = "verbatim_name")) %>% 
   simpleCache::simpleCache("inat_gtax", .)
 
 # Get GBIF taxonomy for literature data ----------------------------------------
@@ -119,41 +129,9 @@ lit_bin_gsn %>%
   flextable::flextable() %>% 
   flextable::autofit()
 
-# Obtain accepted names for synonyms
+# Obtain accepted names for all names
 
-# name_usage() is memoised rgbif::name_usage()
-
-lit_bin_gsn_syn <- 
-  lit_bin_gsn %>% 
-  dplyr::select(acceptedUsageKey) %>% 
-  dplyr::distinct() %>% 
-  na.omit() %>%  
-  purrr::as_vector() %>% 
-  purrr::map(., name_usage) %>%
-  purrr::map(~.[[2]]) %>%
-  dplyr::bind_rows()
-
-# Link scientific names to accepted names
-
-lit_bin_gan <- 
-  dplyr::bind_rows(
-    lit_bin_gsn %>% 
-      dplyr::inner_join(lit_bin_gsn_syn %>% 
-                          dplyr::select(key,
-                                        acceptedNameUsage = scientificName),
-                        by = c("acceptedUsageKey" = "key")
-      ),
-    lit_bin_gsn %>% 
-      dplyr::filter(is.na(acceptedUsageKey)) %>%
-      dplyr::mutate(acceptedNameUsage = scientificName)
-  ) %>% 
-  dplyr::arrange(scientificName) %>% 
-  dplyr::select(scientificName, 
-                taxonRank = rank,
-                taxonomicStatus = status,
-                acceptedNameUsage,
-                kingdom, phylum, class, order, family, genus, species,
-                verbatim_name, confidence, matchType)
+lit_bin_gan <- get_gbif_accepted_names(lit_bin_gsn)
 
 # Bind taxonomy of BIN and GBIF literature datasets
 
@@ -220,71 +198,11 @@ redlist_iucn_gsn %>%
   flextable::flextable() %>% 
   flextable::autofit()
 
-# Obtain accepted names for synonyms
+# Obtain accepted names for all names
 
-# name_usage() is memoised rgbif::name_usage()
+redbooks_nws_gan <- get_gbif_accepted_names(redbooks_nws_gsn)
 
-redbooks_nws_gsn_syn <- 
-  redbooks_nws_gsn %>% 
-  dplyr::select(acceptedUsageKey) %>% 
-  dplyr::distinct() %>% 
-  na.omit() %>%  
-  purrr::as_vector() %>% 
-  purrr::map(., name_usage) %>%
-  purrr::map(~.[[2]]) %>%
-  dplyr::bind_rows()
-
-redlist_iucn_gsn_syn <- 
-  redlist_iucn_gsn %>% 
-  dplyr::select(acceptedUsageKey) %>% 
-  dplyr::distinct() %>% 
-  na.omit() %>%  
-  purrr::as_vector() %>% 
-  purrr::map(., name_usage) %>%
-  purrr::map(~.[[2]]) %>%
-  dplyr::bind_rows()
-
-# Link scientific names to accepted names
-
-redbooks_nws_gan <- 
-  dplyr::bind_rows(
-    redbooks_nws_gsn %>% 
-      dplyr::inner_join(redbooks_nws_gsn_syn %>% 
-                          dplyr::select(key,
-                                        acceptedNameUsage = scientificName),
-                        by = c("acceptedUsageKey" = "key")
-      ),
-    redbooks_nws_gsn %>% 
-      dplyr::filter(is.na(acceptedUsageKey)) %>%
-      dplyr::mutate(acceptedNameUsage = scientificName)
-  ) %>% 
-  dplyr::arrange(scientificName) %>% 
-  dplyr::select(scientificName,
-                taxonRank = rank,
-                taxonomicStatus = status,
-                acceptedNameUsage,
-                kingdom, phylum, class, order, family, genus, species,
-                verbatim_name, confidence, matchType)
-
-redlist_iucn_gan <- 
-  dplyr::bind_rows(
-    redlist_iucn_gsn %>% 
-      dplyr::inner_join(redlist_iucn_gsn_syn %>% 
-                          dplyr::select(key,
-                                        acceptedNameUsage = scientificName),
-                        by = c("acceptedUsageKey" = "key")
-      ),
-    redlist_iucn_gsn %>% 
-      dplyr::filter(is.na(acceptedUsageKey)) %>%
-      dplyr::mutate(acceptedNameUsage = scientificName)
-  ) %>% 
-  dplyr::arrange(scientificName) %>% 
-  dplyr::select(scientificName,
-                taxonRank = rank,
-                taxonomicStatus = status,
-                acceptedNameUsage,
-                kingdom, phylum, class, order, family, genus, species,
-                verbatim_name, confidence, matchType)
+redlist_iucn_gan <- get_gbif_accepted_names(redlist_iucn_gsn)
 
 # Combine GBIF taxonomy with the original Russian Red Books data
 
