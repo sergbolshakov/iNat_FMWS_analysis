@@ -25,7 +25,7 @@ inat %>%
   flextable::set_table_properties(layout = "autofit") %T>% 
   flextable::save_as_docx(path = "output/taxonomic_coverage.docx")
 
-# Output the treemap
+# Treemap
 
 # inat %>%
 #   dplyr::filter(qualityGrade == "research") |>
@@ -50,49 +50,44 @@ inat_taxonomy <-
   inat %>% 
   # dplyr::filter(qualityGrade == "research") %>% 
   dplyr::group_by(acceptedNameUsage) %>% 
-  dplyr::mutate(n_obs = dplyr::n(),
-                n_spe = dplyr::n_distinct(species, na.rm = TRUE)) %>%
   metacoder::parse_tax_data(class_cols = 20:26,
                             named_by_rank = TRUE)
 
 set.seed(1)
 
-plot_mycetozoa <- 
-  inat_taxonomy %>% 
-  metacoder::filter_taxa(taxon_names == "Mycetozoa",
-                         subtaxa = TRUE) %>% 
-  metacoder::filter_taxa(taxon_ranks == "family", supertaxa = TRUE) %>%
-  metacoder::heat_tree(initial_layout = "reingold-tilford",
-                       layout = "davidson-harel",
-                       node_label = taxon_names,
-                       node_size = n_obs,
-                       node_size_range = c(0.01, 0.05),
-                       node_color = n_obs,
-                       node_color_axis_label = "Number of \n observations")
-
 plot_asco <- 
   inat_taxonomy %>% 
   metacoder::filter_taxa(taxon_names == "Ascomycota", subtaxa = TRUE) %>% 
-  metacoder::filter_taxa(taxon_ranks == "family", supertaxa = TRUE) %>%
-  metacoder::heat_tree(initial_layout = "reingold-tilford",
-                       layout = "davidson-harel",
+  metacoder::filter_taxa(taxon_names != "") %>% 
+  metacoder::filter_taxa(n_obs > 4) %>% 
+  metacoder::filter_taxa(taxon_ranks == "genus", supertaxa = TRUE) %>%
+  metacoder::heat_tree(#initial_layout = "reingold-tilford",
+                       #layout = "davidson-harel",
                        node_label = taxon_names,
+                       node_label_max = 30,
+                       node_label_size_range = c(0.02, 0.04),
                        node_size = n_obs,
-                       node_size_range = c(0.01, 0.05),
+                       node_size_range = c(0.006, 0.06),
+                       edge_size_range = c(0.005, 0.005),
                        node_color = n_obs,
-                       node_color_axis_label = "Number of \n observations")
+                       node_color_axis_label = "")
 
-plot_basidio <-
+plot_basidio <- 
   inat_taxonomy %>% 
-  metacoder::filter_taxa(taxon_names == "Basidiomycota", subtaxa = TRUE) %>% 
-  metacoder::filter_taxa(taxon_ranks == "family", supertaxa = TRUE) %>%
-  metacoder::heat_tree(initial_layout = "reingold-tilford",
-                       layout = "davidson-harel",
+  metacoder::filter_taxa(taxon_names == "Basidiomycota", subtaxa = TRUE) %>%
+  metacoder::filter_taxa(taxon_names != "") %>% 
+  metacoder::filter_taxa(n_obs > 4) %>%
+  metacoder::filter_taxa(taxon_ranks == "genus", supertaxa = TRUE) %>%
+  metacoder::heat_tree(#initial_layout = "reingold-tilford",
+                       #layout = "davidson-harel",
                        node_label = taxon_names,
+                       node_label_max = 60,
+                       node_label_size_range = c(0.02, 0.04),
                        node_size = n_obs,
-                       node_size_range = c(0.01, 0.05),
+                       node_size_range = c(0.006, 0.06),
+                       edge_size_range = c(0.005, 0.005),
                        node_color = n_obs,
-                       node_color_axis_label = "Number of \n observations")
+                       node_color_axis_label = "")
 
 cowplot::plot_grid(plot_asco,
                    plot_basidio,
@@ -195,19 +190,24 @@ inat_new_species_strings <-
   dplyr::mutate(
     obs_number = dplyr::n(),
     obs_info = dplyr::case_when(
-      obs_number > 3 ~ stringr::str_c(obs_number, " observations"),
+      obs_number > 3 ~ stringr::str_c(obs_number, " observations: ", 
+                                      stringr::str_c(associatedReferences,
+                                                     collapse = ", ")),
       TRUE ~ stringr::str_c(coordinates, eventDate, recordedBy, associatedReferences,
                             sep = ", ")
     )
   ) %>% 
+  dplyr::mutate(obs_info = dplyr::case_when(
+    dplyr::between(obs_number, 2, 3) ~ stringr::str_c(obs_info, collapse = "; "),
+    TRUE ~ obs_info
+  )) %>% 
   dplyr::select(-(coordinates:obs_number)) %>% 
-  dplyr::distinct() %>%
   dplyr::ungroup() %>% 
   dplyr::transmute(
     new_species = stringr::str_c(acceptedNameUsage, " — new for ",
                                  stateProvince, ", ",
-                                 obs_info, ".")
-    ) %>% 
+                                 obs_info, ".")) %>%
+  dplyr::distinct() %>%
   dplyr::pull()
 
 inat_new_species_doc <- officer::read_docx(path = "data/output_style.docx")
